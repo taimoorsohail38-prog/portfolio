@@ -68,7 +68,7 @@ body{
   position:fixed;inset:0;z-index:1000;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:16px;
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   transition:opacity .7s ease;
 }
 .lock.open{opacity:0;pointer-events:none}
@@ -82,7 +82,7 @@ body{
 .lock .who{font-size:15px;font-weight:600;color:rgba(0,0,0,.8);text-shadow:0 1px 8px rgba(255,255,255,.4)}
 .lock input{
   width:200px;padding:9px 16px;border-radius:99px;border:0;outline:0;
-  background:rgba(255,255,255,.55);backdrop-filter:blur(14px);
+  background:rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   font-family:var(--font);font-size:13px;text-align:center;
   color:#1d1d1f;
   box-shadow:0 4px 18px rgba(0,0,0,.15);
@@ -158,7 +158,7 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
   position:absolute;z-index:100;
   width:min(560px,92vw);max-height:min(72vh,720px);
   display:flex;flex-direction:column;
-  background:var(--win-bg);backdrop-filter:blur(20px);
+  background:var(--win-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border:1px solid var(--win-line);border-radius:12px;
   box-shadow:0 30px 80px rgba(0,0,0,.4);
   overflow:hidden;
@@ -232,7 +232,7 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
   position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:400;
   display:flex;align-items:center;gap:9px;
   padding:8px 12px;border-radius:22px;
-  background:rgba(235,235,235,.45);backdrop-filter:blur(24px);
+  background:rgba(235,235,235,.45);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border:1px solid rgba(255,255,255,.35);
   box-shadow:0 12px 40px rgba(0,0,0,.22);
   opacity:0;
@@ -297,7 +297,7 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
 .alert{
   position:fixed;
   width:min(410px,90vw);z-index:600;
-  background:rgba(43,43,45,.94);backdrop-filter:blur(22px);
+  background:rgba(43,43,45,.94);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border:1px solid rgba(255,255,255,.09);border-radius:12px;
   box-shadow:0 30px 80px rgba(0,0,0,.55);
   color:#eee;
@@ -334,14 +334,33 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
 /* ---------------- MOBILE ---------------- */
 @media(max-width:640px){
   html,body{overflow:auto}
+  body{-webkit-tap-highlight-color:transparent}
+  /* wallpaper: portrait crop favors the face (left third of the photo) */
+  .wp-sharp,.wp-blur{background-position:32% center}
+  /* signature bigger on small screens */
+  .signature{width:min(82vw,520px)}
+  /* password field: 16px stops iOS from auto-zooming the page */
+  .lock input{font-size:16px;width:220px}
+  .lock .hint{display:none}
   .desktop{
-    position:relative;padding:60px 18px 120px;
+    position:relative;padding:70px 18px 130px;
     display:grid;grid-template-columns:repeat(3,1fr);gap:26px 8px;
   }
   .icon{position:relative;left:auto!important;top:auto!important;width:auto}
-  .app-window{position:fixed;inset:40px 10px 90px;width:auto;max-height:none}
-  .dock{gap:6px;padding:7px 10px}
-  .dock-item{width:40px;height:40px}
+  .app-window{position:fixed;inset:24px 10px 96px;width:auto;max-height:none}
+  /* dock: 10 icons have to fit a phone width */
+  .dock{gap:4px;padding:6px 8px;border-radius:16px;bottom:18px;max-width:96vw}
+  .dock-item{width:33px;height:33px}
+  .dock .sep{display:none}
+  .dock-item:hover{transform:none}
+  /* notes window: sidebar becomes a tab row on top */
+  .win-body.notes-body{flex-direction:column}
+  .notes-side{
+    width:100%;display:flex;gap:4px;padding:8px 10px;
+    border-right:0;border-bottom:1px solid var(--win-line);
+  }
+  .notes-side button{border-bottom:0;padding:6px 8px;width:auto;flex:1}
+  .media-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
