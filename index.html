@@ -73,41 +73,6 @@ body{
   filter:blur(24px) brightness(.96) saturate(1.05);
 }
 
-/* ---------------- LOCK SCREEN (macOS login) ----------------
-   The desktop stays frozen until the password is entered. */
-.lock{
-  position:fixed;inset:0;z-index:1000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  transition:opacity .7s ease;
-}
-.lock.open{opacity:0;pointer-events:none}
-.lock .avatar{
-  width:88px;height:88px;border-radius:50%;
-  background:#141416;color:#f2efe9;
-  display:flex;align-items:center;justify-content:center;
-  font-size:26px;font-weight:700;letter-spacing:.04em;
-  box-shadow:0 10px 30px rgba(0,0,0,.3);
-}
-.lock .who{font-size:15px;font-weight:600;color:rgba(0,0,0,.8);text-shadow:0 1px 8px rgba(255,255,255,.4)}
-.lock input{
-  width:200px;padding:9px 16px;border-radius:99px;border:0;outline:0;
-  background:rgba(255,255,255,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  font-family:var(--font);font-size:13px;text-align:center;
-  color:#1d1d1f;
-  box-shadow:0 4px 18px rgba(0,0,0,.15);
-}
-.lock input::placeholder{color:rgba(0,0,0,.4)}
-.lock .hint{font-size:11.5px;color:rgba(0,0,0,.45)}
-.lock input.wrong{animation:wrongShake .4s}
-@keyframes wrongShake{
-  20%{transform:translateX(-9px)}40%{transform:translateX(9px)}
-  60%{transform:translateX(-6px)}80%{transform:translateX(6px)}
-}
-/* freeze the desktop while locked */
-body.locked .icon,body.locked .dock{animation-play-state:paused}
-
 /* ---------------- SIGNATURE (the real signing, replayed on boot) ----------------
    media/signature.mp4 = your iPad recording, cropped + keyed to white.
    mix-blend-mode:multiply makes the white vanish over the wallpaper,
@@ -352,8 +317,6 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
   /* signature bigger on small screens */
   .signature{width:min(82vw,520px)}
   /* password field: 16px stops iOS from auto-zooming the page */
-  .lock input{font-size:16px;width:220px}
-  .lock .hint{display:none}
   /* icons: smaller, still absolute + draggable (positions set in JS) */
   .icon{width:76px}
   .icon .thumb{width:54px;height:54px}
@@ -377,15 +340,7 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
 }
 </style>
 </head>
-<body class="locked">
-
-<!-- lock screen: password gate, macOS login style -->
-<div class="lock" id="lock">
-  <div class="avatar">TS</div>
-  <div class="who">Taimoor Sohail</div>
-  <input id="lockInput" type="password" placeholder="Enter Password" autocomplete="off" autofocus>
-  <div class="hint">press return</div>
-</div>
+<body>
 
 <!-- Wallpaper: drop media/wallpaper.mp4 (any footage — it gets heavily blurred).
      No file? It silently falls back to media/hero.jpg, then the gradient. -->
@@ -750,30 +705,11 @@ const MOBILE_POS = [
 
 /* ---------------- Signature draw-on (every boot) ----------------
    Each stroke draws at natural pen speed, one after the other. */
-/* Lock screen: password is "sonder". Unlock starts the boot sequence. */
-{
-  const lock  = document.getElementById('lock');
-  const input = document.getElementById('lockInput');
-  input.addEventListener('keydown', e => {
-    if (e.key !== 'Enter') return;
-    if (input.value.trim().toLowerCase() === 'sonder'){
-      lock.classList.add('open');
-      document.body.classList.remove('locked');
-      setTimeout(() => lock.remove(), 750);
-      startBoot();
-    } else {
-      input.classList.remove('wrong'); void input.offsetWidth;
-      input.classList.add('wrong');
-      input.value = '';
-    }
-  });
-}
-
-/* Boot sequence (runs after unlock): signature writes itself →
+/* Boot sequence (runs on load): signature writes itself →
    lifts away → project icons pop in → dock rises. */
 function startBoot(){
   const sig = document.querySelector('.signature');
-  const LEAD = 0.6;   /* breath after unlock */
+  const LEAD = 1.0;   /* let the wallpaper settle first */
   const HOLD = 0.5;   /* admire it a moment */
   function schedule(duration){
     /* icon/dock animations were paused while locked, so their animation
@@ -791,6 +727,7 @@ function startBoot(){
     schedule(0);
   }
 }
+startBoot();
 
 /* ---------------- Icons ---------------- */
 PROJECTS.forEach((p, i) => {
