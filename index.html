@@ -349,11 +349,12 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
   .icon .label{font-size:10px;margin-top:5px}
   /* windows: fill the screen between top edge and dock */
   .app-window{position:fixed;inset:20px 10px 92px;width:auto;max-height:none}
-  /* dock: 10 icons fit a phone width */
-  .dock{gap:4px;padding:6px 8px;border-radius:16px;bottom:16px;max-width:96vw}
-  .dock-item{width:33px;height:33px}
+  /* dock: sized in vw so all 10 icons always fit, any phone */
+  .dock{gap:1.2vw;padding:5px 1.6vw;border-radius:14px;bottom:14px}
+  .dock-item{width:7.8vw;height:7.8vw;max-width:34px;max-height:34px}
   .dock .sep{display:none}
   .dock-item:hover{transform:none}
+  .dock-item[data-tip]:hover::after{display:none}
   /* notes window: sidebar becomes a tab row on top */
   .win-body.notes-body{flex-direction:column}
   .notes-side{
