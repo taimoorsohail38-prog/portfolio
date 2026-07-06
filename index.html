@@ -331,9 +331,10 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
   object-fit:contain;z-index:2;pointer-events:none;
 }
 
-/* ---------------- MOBILE ---------------- */
+/* ---------------- MOBILE ----------------
+   Same desktop, recomposed for portrait: everything fits one screen,
+   icons scattered + throwable, no page scroll. */
 @media(max-width:640px){
-  html,body{overflow:auto}
   body{-webkit-tap-highlight-color:transparent}
   /* wallpaper: portrait crop favors the face (left third of the photo) */
   .wp-sharp,.wp-blur{background-position:32% center}
@@ -342,14 +343,14 @@ body.locked .icon,body.locked .dock{animation-play-state:paused}
   /* password field: 16px stops iOS from auto-zooming the page */
   .lock input{font-size:16px;width:220px}
   .lock .hint{display:none}
-  .desktop{
-    position:relative;padding:70px 18px 130px;
-    display:grid;grid-template-columns:repeat(3,1fr);gap:26px 8px;
-  }
-  .icon{position:relative;left:auto!important;top:auto!important;width:auto}
-  .app-window{position:fixed;inset:24px 10px 96px;width:auto;max-height:none}
-  /* dock: 10 icons have to fit a phone width */
-  .dock{gap:4px;padding:6px 8px;border-radius:16px;bottom:18px;max-width:96vw}
+  /* icons: smaller, still absolute + draggable (positions set in JS) */
+  .icon{width:76px}
+  .icon .thumb{width:54px;height:54px}
+  .icon .label{font-size:10px;margin-top:5px}
+  /* windows: fill the screen between top edge and dock */
+  .app-window{position:fixed;inset:20px 10px 92px;width:auto;max-height:none}
+  /* dock: 10 icons fit a phone width */
+  .dock{gap:4px;padding:6px 8px;border-radius:16px;bottom:16px;max-width:96vw}
   .dock-item{width:33px;height:33px}
   .dock .sep{display:none}
   .dock-item:hover{transform:none}
@@ -726,6 +727,15 @@ i still have mine. it does not need anyone but me. it smolders. it is mine.</div
 const isMobile = () => matchMedia('(max-width:640px)').matches;
 const desktop = document.getElementById('desktop');
 
+/* portrait phone layout: same desktop, recomposed so all 8 icons
+   fit one screen (percent positions of the viewport, dock-safe) */
+const MOBILE_POS = [
+  {x:8,  y:9},  {x:40, y:14}, {x:70, y:8},
+  {x:14, y:27}, {x:58, y:26},
+  {x:8,  y:44}, {x:52, y:43},
+  {x:30, y:59}
+];
+
 /* ---------------- Signature draw-on (every boot) ----------------
    Each stroke draws at natural pen speed, one after the other. */
 /* Lock screen: password is "sonder". Unlock starts the boot sequence. */
@@ -774,16 +784,16 @@ function startBoot(){
 PROJECTS.forEach((p, i) => {
   const el = document.createElement('div');
   el.className = 'icon';
-  el.style.left = p.x + '%';
-  el.style.top  = p.y + '%';
+  const pos = (isMobile() && MOBILE_POS[i]) ? MOBILE_POS[i] : p;
+  el.style.left = pos.x + '%';
+  el.style.top  = pos.y + '%';
   el.style.setProperty('--i', i);
   el.innerHTML = `
     <div class="thumb" style="position:relative">${String(i+1).padStart(2,'0')}${p.thumb ? `<img src="${p.thumb}" alt="" style="position:absolute;inset:0" onerror="this.remove()">` : ''}</div>
     <div class="label">${p.title}</div>`;
   el.addEventListener('animationend', () => el.classList.add('settled'));
   desktop.appendChild(el);
-  if (isMobile()) el.addEventListener('click', () => openWindow(p, el));
-  else makeIconPhysical(el, p);
+  makeIconPhysical(el, p);   /* draggable + throwable everywhere, phones too */
 });
 
 /* ============================================================
