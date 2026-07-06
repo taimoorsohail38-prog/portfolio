@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taimoor Sohail</title>
+<meta name="description" content="Taimoor Sohail. creative portfolio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESKTOP OS PORTFOLIO
+   Wallpaper : blurred looping video (media/wallpaper.mp4)
+               → falls back to media/hero.jpg → gradient
+   Icons     : projects (PROJECTS array below) — draggable with
+               momentum physics; click (no drag) opens window
+   Dock      : Ae Ps Ai ⚠ | Notes Photos | Instagram Mail | Trash
+   ============================================================ */
+:root{
+  --ink:#1d1d1f;
+  --win-bg:rgba(246,246,244,.96);
+  --win-line:rgba(0,0,0,.12);
+  --label:#fff;
+  --font:"Inter",-apple-system,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:var(--font);color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  background:#8e8a86;
+  user-select:none;
+}
+
+/* ---------------- WALLPAPER ---------------- */
+/* Gradient blur, like the original reference:
+   clear up top (you can tell who it is), progressively blurred lower down.
+   Two stacked copies of the same image — sharp base + blurred layer whose
+   visibility is controlled by a vertical mask. */
+.wallpaper{
+  position:fixed;inset:0;z-index:0;overflow:hidden;
+  background:linear-gradient(160deg,#b9b4ae,#8e8a86 50%,#6e6a66); /* fallback */
+  animation:wallFade 1s ease both;
+}
+@keyframes wallFade{from{opacity:0}}
+.wp-sharp,.wp-blur{
+  position:absolute;inset:-1%;
+  background:url("media/hero.jpg") center/cover no-repeat;
+}
+.wp-sharp{filter:blur(2.5px) brightness(.99)}          /* nearly clear */
+.wp-blur{
+  filter:blur(24px) brightness(.97) saturate(1.05);    /* heavy blur below */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 8%,rgba(0,0,0,.55) 42%,#000 72%);
+          mask-image:linear-gradient(to bottom,transparent 8%,rgba(0,0,0,.55) 42%,#000 72%);
+}
+.wallpaper video{
+  position:absolute;left:50%;top:50%;
+  min-width:112%;min-height:112%;width:auto;height:auto;
+  transform:translate(-50%,-50%);
+  object-fit:cover;
+  filter:blur(24px) brightness(.96) saturate(1.05);
+}
+
+/* ---------------- LOCK SCREEN (macOS login) ----------------
+   The desktop stays frozen until the password is entered. */
+.lock{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;
+  backdrop-filter:blur(10px);
+  transition:opacity .7s ease;
+}
+.lock.open{opacity:0;pointer-events:none}
+.lock .avatar{
+  width:88px;height:88px;border-radius:50%;
+  background:#141416;color:#f2efe9;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:700;letter-spacing:.04em;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+.lock .who{font-size:15px;font-weight:600;color:rgba(0,0,0,.8);text-shadow:0 1px 8px rgba(255,255,255,.4)}
+.lock input{
+  width:200px;padding:9px 16px;border-radius:99px;border:0;outline:0;
+  background:rgba(255,255,255,.55);backdrop-filter:blur(14px);
+  font-family:var(--font);font-size:13px;text-align:center;
+  color:#1d1d1f;
+  box-shadow:0 4px 18px rgba(0,0,0,.15);
+}
+.lock input::placeholder{color:rgba(0,0,0,.4)}
+.lock .hint{font-size:11.5px;color:rgba(0,0,0,.45)}
+.lock input.wrong{animation:wrongShake .4s}
+@keyframes wrongShake{
+  20%{transform:translateX(-9px)}40%{transform:translateX(9px)}
+  60%{transform:translateX(-6px)}80%{transform:translateX(6px)}
+}
+/* freeze the desktop while locked */
+body.locked .icon,body.locked .dock{animation-play-state:paused}
+
+/* ---------------- SIGNATURE (the real signing, replayed on boot) ----------------
+   media/signature.mp4 = your iPad recording, cropped + keyed to white.
+   mix-blend-mode:multiply makes the white vanish over the wallpaper,
+   so only the ink shows — being written exactly as you wrote it. */
+.signature{
+  position:fixed;left:50%;top:50%;
+  transform:translate(-50%,-52%);
+  width:min(44vw,520px);z-index:2;pointer-events:none;
+  mix-blend-mode:multiply;
+  opacity:.92;
+  transition:opacity .9s ease, transform .9s ease;
+}
+.signature.done{opacity:0;transform:translate(-50%,-56%)} /* lifts away */
+
+/* ---------------- DESKTOP ICONS ---------------- */
+.icon{
+  position:absolute;z-index:5;
+  width:92px;text-align:center;cursor:grab;
+  touch-action:none;
+  opacity:0;transform:scale(.6);
+  animation:pop .55s cubic-bezier(.34,1.56,.64,1) forwards;
+  animation-delay:calc(var(--i)*70ms + var(--boot-delay, .5s));
+}
+.icon.settled{opacity:1;transform:none;animation:none}
+@keyframes pop{to{opacity:1;transform:scale(1)}}
+/* solid square tiles, like the reference — flat, no rounding, no border.
+   hover = pop + highlight */
+.icon .thumb{
+  width:62px;height:62px;margin:0 auto;border-radius:0;
+  background:#141416;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.45);font-size:11px;font-weight:700;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .22s, filter .22s;
+}
+.icon .thumb img,.icon .thumb video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.icon:hover .thumb{
+  transform:scale(1.18);
+  filter:brightness(1.2);
+  box-shadow:0 12px 30px rgba(0,0,0,.4);
+}
+.icon:hover .label{color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.icon.dragging{cursor:grabbing;z-index:60}
+.icon.dragging .thumb{
+  transform:scale(1.26) rotate(-2deg);
+  filter:brightness(1.15);
+  box-shadow:0 18px 44px rgba(0,0,0,.45);
+}
+.icon .label{
+  margin-top:7px;font-size:11.5px;font-weight:600;line-height:1.25;
+  color:var(--label);letter-spacing:.04em;text-transform:uppercase;
+  text-shadow:0 1px 6px rgba(0,0,0,.55);
+  pointer-events:none;
+}
+
+/* ---------------- WINDOWS ---------------- */
+.app-window{
+  position:absolute;z-index:100;
+  width:min(560px,92vw);max-height:min(72vh,720px);
+  display:flex;flex-direction:column;
+  background:var(--win-bg);backdrop-filter:blur(20px);
+  border:1px solid var(--win-line);border-radius:12px;
+  box-shadow:0 30px 80px rgba(0,0,0,.4);
+  overflow:hidden;
+  animation:winIn .35s cubic-bezier(.22,1,.36,1);
+}
+@keyframes winIn{from{opacity:0;transform:scale(.92) translateY(14px)}}
+.app-window.closing{animation:winOut .22s ease forwards}
+@keyframes winOut{to{opacity:0;transform:scale(.94) translateY(8px)}}
+
+.titlebar{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-bottom:1px solid var(--win-line);
+  cursor:grab;flex-shrink:0;
+  font-size:12.5px;font-weight:600;color:rgba(0,0,0,.6);
+}
+.titlebar:active{cursor:grabbing}
+.lights{display:flex;gap:7px}
+.lights span{width:12px;height:12px;border-radius:50%;display:block;cursor:pointer}
+.lights .r{background:#ff5f57}.lights .y{background:#febc2e}.lights .g{background:#28c840}
+
+.win-body{overflow-y:auto;padding:20px 22px 26px;user-select:text}
+.win-head{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+.win-head .mini{
+  width:52px;height:52px;border-radius:0;overflow:hidden;flex-shrink:0;
+  background:#141416;
+}
+.win-head .mini img{width:100%;height:100%;object-fit:cover}
+.win-head h2{font-size:16px;font-weight:700}
+.win-head .client{font-size:13px;color:rgba(0,0,0,.55)}
+.win-body p{font-size:13.5px;line-height:1.65;color:rgba(0,0,0,.78);margin-bottom:10px}
+.win-sec{
+  margin-top:16px;font-size:12px;font-weight:700;
+  color:rgba(0,0,0,.5);margin-bottom:8px;
+}
+.win-body .detail{font-size:13px;color:rgba(0,0,0,.75)}
+.media-stack{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.media-stack video,.media-stack img{width:100%;border-radius:8px;display:block;background:#000}
+.media-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.media-grid video,.media-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block;background:#000}
+.media-note{
+  font-size:12.5px;color:rgba(0,0,0,.45);border:1px dashed rgba(0,0,0,.2);
+  border-radius:8px;padding:18px;text-align:center;
+}
+/* redacted content: blurred out with a stamp over it */
+.redacted{position:relative}
+.redacted .blurred{filter:blur(7px);pointer-events:none;user-select:none}
+.redacted .stamp{
+  position:sticky;top:120px;z-index:2;height:0;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;
+  font-weight:800;font-size:clamp(30px,5vw,46px);line-height:1.05;
+  letter-spacing:-.02em;color:rgba(16,16,16,.9);
+  transform:rotate(-7deg);
+  text-transform:lowercase;
+  flex-direction:column;gap:6px;
+}
+.redacted .stamp .sub{
+  font-size:14px;font-weight:600;letter-spacing:.02em;
+  color:rgba(16,16,16,.65);
+}
+.paper h3{font-size:13px;font-weight:700;color:rgba(0,0,0,.85);margin:18px 0 8px}
+.paper h3:first-child{margin-top:0}
+.paper p{font-size:13.5px;line-height:1.65;color:rgba(0,0,0,.78);margin-bottom:10px}
+.paper .check{margin-top:4px}
+.poem{margin-bottom:30px;max-width:52ch}
+.poem h4{font-size:13px;font-weight:700;color:rgba(0,0,0,.85);margin-bottom:10px}
+.poem div{white-space:pre-line;font-size:13.5px;line-height:1.75;color:rgba(0,0,0,.78)}
+
+/* ---------------- DOCK ---------------- */
+.dock{
+  position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:400;
+  display:flex;align-items:center;gap:9px;
+  padding:8px 12px;border-radius:22px;
+  background:rgba(235,235,235,.45);backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 12px 40px rgba(0,0,0,.22);
+  opacity:0;
+  animation:dockIn .8s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay:calc(var(--boot-delay, .5s) + .7s);
+}
+@keyframes dockIn{from{transform:translateX(-50%) translateY(70px)}to{opacity:1;transform:translateX(-50%)}}
+.dock .sep{width:1px;height:36px;background:rgba(0,0,0,.16);margin:0 2px}
+.dock-item{
+  width:46px;height:46px;display:block;position:relative;cursor:pointer;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1);
+  border:0;background:none;padding:0;
+}
+.dock-item:hover{transform:translateY(-10px) scale(1.18)}
+.dock-item svg{width:100%;height:100%;display:block}
+.dock-item[data-tip]:hover::after{
+  content:attr(data-tip);
+  position:absolute;bottom:58px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.75);color:#fff;font-size:11px;font-weight:500;
+  padding:4px 9px;border-radius:6px;white-space:nowrap;z-index:10;
+}
+.dock-item.shake{animation:shake .5s}
+@keyframes shake{
+  20%{transform:rotate(-8deg)}40%{transform:rotate(8deg)}
+  60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}
+}
+
+/* ---------------- NOTES / ABOUT WINDOW (bychudy-style) ---------------- */
+.win-body.notes-body{padding:0;display:flex;min-height:0}
+.notes-side{
+  width:118px;flex-shrink:0;padding:12px 10px;
+  border-right:1px solid var(--win-line);
+}
+.notes-side button{
+  display:flex;justify-content:space-between;align-items:baseline;width:100%;
+  background:none;border:0;font-family:var(--font);font-size:13px;font-weight:600;
+  color:rgba(0,0,0,.78);padding:9px 4px;cursor:pointer;
+  border-bottom:1px solid rgba(0,0,0,.14);text-align:left;
+}
+.notes-side button .n{font-size:11.5px;font-weight:500;color:rgba(0,0,0,.4)}
+.notes-side button.active{color:#000}
+.notes-side button:hover{color:#000}
+.notes-content{flex:1;overflow-y:auto;padding:18px 20px 24px;user-select:text}
+.notes-content p{font-size:13.5px;line-height:1.6;color:rgba(0,0,0,.8);margin-bottom:14px}
+.notes-content h3{font-size:13.5px;font-weight:600;color:rgba(0,0,0,.85);margin:4px 0 12px}
+.check{list-style:none;margin:0 0 18px}
+.check li{
+  display:flex;align-items:center;gap:9px;
+  font-size:13px;color:rgba(0,0,0,.8);padding:4.5px 0;
+}
+.check li::before{
+  content:"";width:15px;height:15px;flex-shrink:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='8' fill='%23eba13f'/><path d='M4.5 8.3 7 10.7l4.5-5.2' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") center/contain no-repeat;
+}
+/* goals not yet reached: empty ring, waiting for its check */
+.check li.todo::before{
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='none' stroke='%23c9c9c4' stroke-width='1.6'/></svg>") center/contain no-repeat;
+}
+.check li.todo{color:rgba(0,0,0,.5)}
+
+/* ---------------- DARK ALERT (⚠ in dock) ---------------- */
+.alert{
+  position:fixed;
+  width:min(410px,90vw);z-index:600;
+  background:rgba(43,43,45,.94);backdrop-filter:blur(22px);
+  border:1px solid rgba(255,255,255,.09);border-radius:12px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);
+  color:#eee;
+  animation:alertIn .3s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes alertIn{from{opacity:0;transform:scale(.9)}}
+.alert.closing{animation:winOut .18s ease forwards}
+.alert .abar{
+  text-align:center;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.55);
+  padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+  cursor:grab;
+}
+.alert .acontent{display:flex;gap:16px;padding:18px 20px 14px;align-items:flex-start}
+.alert .acontent svg{width:46px;height:46px;flex-shrink:0}
+.alert .amsg{font-size:13px;line-height:1.55;color:rgba(255,255,255,.88);padding-top:4px}
+.alert .aactions{display:flex;justify-content:flex-end;padding:0 20px 16px}
+.alert .aactions button{
+  background:#2f7cf6;color:#fff;border:0;border-radius:7px;
+  padding:7px 16px;font-size:13px;font-weight:500;font-family:var(--font);
+  cursor:pointer;transition:background .2s;
+}
+.alert .aactions button:hover{background:#4a8df8}
+
+/* Pixel-perfect dock icons: drop PNGs into media/logos/
+   (ae.png ps.png ai.png warning.png notes.png photos.png
+    instagram.png mail.png trash.png) — they auto-replace the
+    SVG stand-ins below. Missing file = SVG stays. */
+.dock-item{position:relative}
+.dock-item img.px{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;z-index:2;pointer-events:none;
+}
+
+/* ---------------- MOBILE ---------------- */
+@media(max-width:640px){
+  html,body{overflow:auto}
+  .desktop{
+    position:relative;padding:60px 18px 120px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:26px 8px;
+  }
+  .icon{position:relative;left:auto!important;top:auto!important;width:auto}
+  .app-window{position:fixed;inset:40px 10px 90px;width:auto;max-height:none}
+  .dock{gap:6px;padding:7px 10px}
+  .dock-item{width:40px;height:40px}
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- lock screen: password gate, macOS login style -->
+<div class="lock" id="lock">
+  <div class="avatar">TS</div>
+  <div class="who">Taimoor Sohail</div>
+  <input id="lockInput" type="password" placeholder="Enter Password" autocomplete="off" autofocus>
+  <div class="hint">press return</div>
+</div>
+
+<!-- Wallpaper: drop media/wallpaper.mp4 (any footage — it gets heavily blurred).
+     No file? It silently falls back to media/hero.jpg, then the gradient. -->
+<div class="wallpaper">
+  <div class="wp-sharp"></div>
+  <div class="wp-blur"></div>
+  <video autoplay muted loop playsinline
+         src="media/wallpaper.mp4"
+         onerror="this.remove()"></video>
+</div>
+
+<!-- signature: the real signing recording, keyed to ink-only, replayed on boot -->
+<video class="signature" src="media/signature.mp4" muted playsinline preload="auto"
+       onerror="this.remove()"></video>
+
+<main class="desktop" id="desktop"></main>
+
+<!-- ---------------- DOCK (matches reference: Ae Ps Ai ⚠ | Notes Photos | IG Mail | Trash) ---------------- -->
+<div class="dock">
+
+  <button class="dock-item" data-tip="After Effects">
+    <svg viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#00005b"/><text x="24" y="31" font-family="Inter,sans-serif" font-size="19" font-weight="700" fill="#9999ff" text-anchor="middle">Ae</text></svg>
+  </button>
+  <button class="dock-item" data-tip="Premiere Pro">
+    <svg viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#1a0a2e"/><text x="24" y="31" font-family="Inter,sans-serif" font-size="19" font-weight="700" fill="#d8a8ff" text-anchor="middle">Pr</text></svg>
+  </button>
+  <button class="dock-item" data-tip="Photoshop">
+    <svg viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#001e36"/><text x="24" y="31" font-family="Inter,sans-serif" font-size="19" font-weight="700" fill="#31a8ff" text-anchor="middle">Ps</text></svg>
+  </button>
+  <button class="dock-item" data-tip="Illustrator">
+    <svg viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#330000"/><text x="24" y="31" font-family="Inter,sans-serif" font-size="19" font-weight="700" fill="#ff9a00" text-anchor="middle">Ai</text></svg>
+  </button>
+  <button class="dock-item" data-tip="Work in progress" id="warnBtn">
+    <svg viewBox="0 0 48 48">
+      <path d="M24 6 L45 41 H3 Z" fill="#ffcc00" stroke="#e6a700" stroke-width="1.5" stroke-linejoin="round"/>
+      <rect x="22" y="18" width="4" height="12" rx="2" fill="#1d1d1f"/>
+      <circle cx="24" cy="35" r="2.4" fill="#1d1d1f"/>
+    </svg>
+  </button>
+
+  <span class="sep"></span>
+
+  <button class="dock-item" data-tip="About me" id="notesBtn">
+    <svg viewBox="0 0 48 48">
+      <rect width="48" height="48" rx="10" fill="#fff"/>
+      <rect width="48" height="14" rx="10" fill="#ffd860"/>
+      <rect y="10" width="48" height="4" fill="#ffd860"/>
+      <circle cx="10" cy="7" r="1.6" fill="rgba(0,0,0,.25)"/><circle cx="17" cy="7" r="1.6" fill="rgba(0,0,0,.25)"/>
+      <rect x="8" y="22" width="32" height="2.4" rx="1.2" fill="#d9d9d9"/>
+      <rect x="8" y="29" width="32" height="2.4" rx="1.2" fill="#d9d9d9"/>
+      <rect x="8" y="36" width="22" height="2.4" rx="1.2" fill="#d9d9d9"/>
+    </svg>
+  </button>
+  <button class="dock-item" data-tip="Frames" id="photosBtn">
+    <svg viewBox="0 0 48 48">
+      <rect width="48" height="48" rx="10" fill="#fff"/>
+      <g transform="translate(24 24)">
+        <ellipse rx="6" ry="13" cy="-9" fill="#f5b800" opacity=".85"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#f28500" opacity=".85" transform="rotate(45)"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#e5443c" opacity=".85" transform="rotate(90)"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#d64e9a" opacity=".85" transform="rotate(135)"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#8c62d2" opacity=".85" transform="rotate(180)"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#3f8fe8" opacity=".85" transform="rotate(225)"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#42b4e6" opacity=".85" transform="rotate(270)"/>
+        <ellipse rx="6" ry="13" cy="-9" fill="#5bb974" opacity=".85" transform="rotate(315)"/>
+      </g>
+    </svg>
+  </button>
+
+  <span class="sep"></span>
+
+  <a class="dock-item" data-tip="Instagram" href="https://www.instagram.com/tsxhail" target="_blank" rel="noopener" aria-label="Instagram">
+    <svg viewBox="0 0 48 48">
+      <defs><radialGradient id="ig" cx="30%" cy="107%" r="150%">
+        <stop offset="0%" stop-color="#fdf497"/><stop offset="9%" stop-color="#fdf497"/>
+        <stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/>
+        <stop offset="90%" stop-color="#285AEB"/>
+      </radialGradient></defs>
+      <rect width="48" height="48" rx="10" fill="url(#ig)"/>
+      <rect x="12" y="12" width="24" height="24" rx="7" fill="none" stroke="#fff" stroke-width="2.6"/>
+      <circle cx="24" cy="24" r="5.6" fill="none" stroke="#fff" stroke-width="2.6"/>
+      <circle cx="31.2" cy="16.8" r="1.8" fill="#fff"/>
+    </svg>
+  </a>
+  <a class="dock-item" data-tip="Email me" href="mailto:storiesbytaimoor@gmail.com?subject=let%27s%20make%20something" aria-label="Email">
+    <svg viewBox="0 0 48 48">
+      <defs><linearGradient id="ml" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5fb9f8"/><stop offset="100%" stop-color="#1c7ee0"/>
+      </linearGradient></defs>
+      <rect width="48" height="48" rx="10" fill="url(#ml)"/>
+      <rect x="9" y="14" width="30" height="21" rx="3.5" fill="#fff"/>
+      <path d="M10.5 16.5 24 27l13.5-10.5" fill="none" stroke="#1c7ee0" stroke-width="2"/>
+    </svg>
+  </a>
+
+  <span class="sep"></span>
+
+  <button class="dock-item" data-tip="Trash" id="trashBtn">
+    <svg viewBox="0 0 48 48">
+      <path d="M13 12 h22 l-2.5 28 a3 3 0 0 1-3 2.6 h-11 a3 3 0 0 1-3-2.6 Z"
+            fill="rgba(255,255,255,.55)" stroke="rgba(120,120,125,.9)" stroke-width="1.6"/>
+      <g stroke="rgba(120,120,125,.55)" stroke-width="1.1">
+        <line x1="17.5" y1="15" x2="18.8" y2="39"/><line x1="21.5" y1="15" x2="22.2" y2="39"/>
+        <line x1="26.5" y1="15" x2="25.8" y2="39"/><line x1="30.5" y1="15" x2="29.2" y2="39"/>
+      </g>
+      <ellipse cx="24" cy="12" rx="11" ry="2.6" fill="rgba(255,255,255,.75)" stroke="rgba(120,120,125,.9)" stroke-width="1.4"/>
+      <circle cx="20" cy="10.8" r="1.5" fill="#e5443c" opacity=".8"/>
+      <circle cx="25.5" cy="10.4" r="1.5" fill="#3f8fe8" opacity=".8"/>
+      <circle cx="29" cy="11.2" r="1.3" fill="#5bb974" opacity=".8"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+/* ============================================================
+   PROJECTS — this array IS your site.
+   x/y = starting % position of the icon on the desktop.
+   media: {type:"video", src:"media/foo.mp4"} or {type:"img", src:"media/foo.jpg"}
+   ============================================================ */
+const PROJECTS = [
+  { id:"p1", title:"One Mutual Away", client:"Cerca", year:"2025",
+    type:"Concept > Campaign",
+    detailText:"Type: Concept > Campaign. turnaround: five days.",
+    x:12, y:22,
+    thumb:"media/projects/one-mutual-away/icon.png",
+    media:[
+      /* favorite frames first — drop files with these names, missing ones auto-hide */
+      {type:"img", src:"media/projects/one-mutual-away/frame-01.jpg"},
+      {type:"img", src:"media/projects/one-mutual-away/frame-02.jpg"},
+      {type:"img", src:"media/projects/one-mutual-away/frame-03.jpg"},
+      {type:"img", src:"media/projects/one-mutual-away/frame-04.jpg"},
+      {type:"img", src:"media/projects/one-mutual-away/frame-05.jpg"},
+      {type:"img", src:"media/projects/one-mutual-away/frame-06.jpg"},
+      /* the film sits under the frames */
+      {type:"video", src:"media/projects/one-mutual-away/video.mp4"}
+    ],
+    desc:`two people. two parallel lives. both looking for someone.
+    they pass each other. sit beside each other. never knowing.
+    <br><br>
+    it takes a mutual. one person who sees them both. to realize
+    what they could not.
+    <br><br>
+    that they were meant for each other all along.` },
+  { id:"p2", title:"cryptobro work", client:"Blink", year:"ongoing",
+    type:"Creative Direction > Clothing (ETHGlobal) > Campaigns > Founder Series",
+    x:30, y:48,
+    thumb:"media/projects/blink/icon.png",
+    media:[
+      {type:"img", src:"media/projects/blink/frame-01.jpg"},
+      {type:"img", src:"media/projects/blink/frame-02.jpg"},
+      {type:"img", src:"media/projects/blink/frame-03.jpg"},
+      {type:"img", src:"media/projects/blink/frame-04.jpg"},
+      {type:"img", src:"media/projects/blink/frame-05.jpg"},
+      {type:"img", src:"media/projects/blink/frame-06.jpg"},
+      {type:"img", src:"media/projects/blink/frame-07.jpg"},
+      {type:"img", src:"media/projects/blink/frame-08.jpg"},
+      {type:"video", src:"media/projects/blink/video-01.mp4"},
+      {type:"video", src:"media/projects/blink/video-02.mp4"},
+      {type:"video", src:"media/projects/blink/video-03.mp4"},
+      {type:"video", src:"media/projects/blink/video-04.mp4"}
+    ],
+    desc:`i made the clothes blink wore at ethglobal. i built campaigns with them
+    and the companies they partner with. i led the filming of their founder series.
+    <br><br>
+    moodboards. shoots. edits. every frame passed through my hands.
+    <br><br>
+    nothing left the house until it felt right.` },
+  { id:"rowhouse", title:"Rowhouse Running", client:"Rowhouse Run Club", year:"2025",
+    type:"Videography > Edit > Community",
+    x:55, y:16,
+    thumb:"media/projects/rowhouse/icon.png",
+    media:[
+      {type:"img", src:"media/projects/rowhouse/frame-01.jpg"},
+      {type:"img", src:"media/projects/rowhouse/frame-02.jpg"},
+      {type:"img", src:"media/projects/rowhouse/frame-03.jpg"},
+      {type:"img", src:"media/projects/rowhouse/frame-04.jpg"},
+      {type:"video", src:"media/projects/rowhouse/video-01.mp4"},
+      {type:"video", src:"media/projects/rowhouse/video-02.mp4"},
+      {type:"video", src:"media/projects/rowhouse/video-03.mp4"},
+      {type:"video", src:"media/projects/rowhouse/video-04.mp4"}
+    ],
+    desc:`i have always believed running is a form of art. art connects people.
+    rowhouse lets running do the same.
+    <br><br>
+    we are a bunch of friends in philadelphia who believe there is a creativity
+    to running. a community in it too. we build stories through it. the team
+    brings the thoughts. i bring them to life.
+    <br><br>
+    every film here. shot and cut by me.` },
+  { id:"thoughts", title:"Personal Thoughts", client:"personal", year:"ongoing",
+    type:"Writing",
+    x:72, y:40,
+    thumb:"media/projects/personal-thoughts/icon.png",
+    media:[ {type:"video", src:"media/projects/personal-thoughts/video-01.mp4"} ],
+    detailText:`this is for the kid that played as goku in the shower. the
+    teenager that sang at the top of his lungs alone. to every kid who felt
+    that they could also make something creative. being creative is human
+    nature. and i can't fight human nature. so i do my best to create more.`,
+    desc:`i fail all the time. i miss deadlines i set for myself. i drop ideas
+    that deserved better. i watch people move faster than me and wonder if i
+    am behind for good.
+    <br><br>
+    but i keep coming back to the desk. the lamp on. the room quiet. there is
+    a younger version of me who dreamed of sitting exactly here. i owe him
+    something.
+    <br><br>
+    this work has taught me more than any classroom. how to look. how to wait.
+    how to cut what i love and keep what is true. it taught me that failing is
+    not the opposite of making. it is the making.
+    <br><br>
+    i do not know exactly who i am yet. i know who i want to be. a man who
+    forges his own sword. whose work does not need an audience to stay lit.
+    <br><br>
+    i cannot let this go. it is mine.` },
+  { id:"opennote", title:"note taker app", client:"Opennote", year:"2025",
+    type:"Ad > Direction > Edit",
+    detailText:"Type: Ad > Direction > Edit. turnaround: five days.",
+    x:44, y:66,
+    thumb:"media/projects/opennote/icon.png",
+    media:[
+      {type:"img", src:"media/projects/opennote/frame-01.jpg"},
+      {type:"img", src:"media/projects/opennote/frame-02.jpg"},
+      {type:"img", src:"media/projects/opennote/frame-03.jpg"},
+      {type:"video", src:"media/projects/opennote/video-01.mp4"}
+    ],
+    desc:`opennote is a yc backed app that lets students take notes and learn
+    from them. i made them an ad. for fun.
+    <br><br>
+    the concept was simple. we struggle. why not use something that makes
+    it simpler.
+    <br><br>
+    funny thing is. shot and turned over in five days.` },
+  { id:"betachitheta", title:"Beta Chi Theta", client:"Beta Chi Theta", year:"2024",
+    type:"Design > Media",
+    x:84, y:64,
+    thumb:"media/projects/beta-chi-theta/icon.png",
+    media:[
+      {type:"img", src:"media/projects/beta-chi-theta/frame-01.jpg"},
+      {type:"img", src:"media/projects/beta-chi-theta/frame-02.jpg"},
+      {type:"img", src:"media/projects/beta-chi-theta/frame-03.jpg"},
+      {type:"video", src:"media/projects/beta-chi-theta/video-01.mp4"},
+      {type:"video", src:"media/projects/beta-chi-theta/video-02.mp4"}
+    ],
+    desc:`i helped found a fraternity. somewhere in the middle of building it,
+    i realized how badly i wanted to be creative.
+    <br><br>
+    it gave me my first reasons to make things. videos to present it.
+    clothes to dress it in.
+    <br><br>
+    in a weird way it was a child. one that taught me a lesson on who
+    i wanted to be.` },
+  { id:"shayari", title:"Shayari Studio", client:"founder", year:"ongoing",
+    type:"Film > Design > Words",
+    x:22, y:76,
+    thumb:"media/projects/shayari-studio/icon.png",
+    media:[],
+    html:`<a href="https://www.linkedin.com/company/shayari-studio" target="_blank"
+          rel="noopener" style="text-decoration:underline">shayari studio on linkedin</a>`,
+    desc:`i believe every idea is poetry. shayari studio is where that belief
+    goes to work.
+    <br><br>
+    we take what people are trying to say and give it a body. film. design.
+    words. whatever the idea asks for.
+    <br><br>
+    the craft changes. the care does not.` },
+  { id:"poetry", title:"poems", client:"personal", year:"ongoing",
+    type:"Writing > Poetry", x:8, y:62,
+    thumb:"media/projects/poems/icon.png", media:[],
+    desc:`i write when the room is quiet. these are the pieces that stayed.`,
+    html:`
+      <div class="poem"><h4>my jail cell</h4><div>the weight of shackles turned these wrists purple. no feeling. only pressure. the small walls of the cell kept my eyes fixed upon the window. one where glimmers of light struck my face. one where the scent of grass kept my soul from leaving me.
+
+parched by the words of others. burdened by the opinions pressed heavily into these hands. i starved there. the rhythm of the chains sang lullabies to my being. the pain served as a timekeeper. i slept on stone and woke with a fire in my mouth.
+
+i was not free. yet i remained sharp. sharp enough to cut through shackles. strong enough to break through the walls. finding my feet within the soft grass my body once craved. standing now in the sun my skin once desired so desperately.
+
+here. the grass is covered in dew. the sky is vast. yet i am dull.
+my hands hang. craving that weight. i found freedom. yet felt nothing.
+
+just a man.
+
+a man that craves the cold stone of the jail cell where he once resided.</div></div>
+
+      <div class="poem"><h4>insomnia</h4><div>i cower over my desk. nothing but the lamp on. the room quiet enough to hear the slow passing of time. the clock now striking hours belonging to the sun.
+
+my thoughts lie scattered across paper. crossed out. rewritten. folded. each line an attempt to grasp something that slips just beyond reach.
+
+i wonder what it would mean to stop. to close the notebook. to let the lamp go dark. an injustice. to those who have seen something in me that i still struggle to see myself. an injustice to a younger version of me. one who once dreamed of sitting exactly here. chasing something through the quiet of the night.
+
+as my body begins to waver toward the breath of sleep, my mind refuses to rest.
+
+i dream.
+
+to make something.</div></div>
+
+      <div class="poem"><h4>the iron in me</h4><div>i think when i strip everything away, the voice, the posture, the version of me i perform, i am just a kid standing in a room trying to prove something no one asked for. i do not even know what that something is anymore. maybe that i matter. maybe that i exist in a way that leaves a mark. maybe just that i am not as empty as i feel.
+
+but the truth is, sometimes i feel like i contribute nothing. like i pass through moments instead of shaping them. like i am a placeholder in my own life. it is not loud. it is not dramatic. it is quiet.
+
+it is the kind of quiet that sits in your chest and waits. the kind that makes you question if this is loneliness or something worse. because loneliness still hopes. this does not. this just is.
+
+it sits in my throat like something heavy. like i swallowed iron, and now every breath has to pass through it.</div></div>
+
+      <div class="poem"><h4>pinnochio</h4><div>i reached the end of my lies
+and there was nothing waiting
+just me
+and the mirror
+i looked
+and saw something worn out
+cracked
+barely holding its shape
+not a man
+they have eaten what was mine
+took it like it was nothing
+left me hollow
+they broke my heart so many times
+it forgot how to be whole
+and in doing so
+they lost me everything
+now i stand here
+burning from the words i once gave away
+every lie coming back
+to live in me
+i try to hold myself together
+but even that feels fake
+the mirror just watches
+and all i see
+is something broken
+
+unfree
+no man
+nothing</div></div>
+
+      <div class="poem"><h4>live to create more</h4><div>some men live for a single thing. for a sword they will forge their whole life. for a road only their feet will walk. they do not need an audience. the work is the company.
+
+other dreams are weather. they pull in others. they spin them, lift them, drop them somewhere they did not choose. a man with that kind of dream walks through a field of men and leaves no field behind.
+
+i have known both. i have walked in the storm. i have set the storm down.
+
+the storm is also a cage. the man inside it cannot see the men he has thrown. he can only see the next thing he wants to become. and the next. and the next. the cage moves with him. he is its only prisoner who calls it freedom.
+
+i would rather forge the sword. the dream that holds dominion over the world has to keep finding new bodies to feed it. the dream that lives in one man's hands lives as long as the hands do.
+
+a dream that has been abandoned still smolders in the chest of the man who once held it. the storm belongs to no one. it scatters and asks for more.
+
+those who have no dream at all walk warm but not lit. they pass through their own lives like guests. they leave no shape behind.
+
+i still have mine. it does not need anyone but me. it smolders. it is mine.</div></div>` },
+];
+
+const isMobile = () => matchMedia('(max-width:640px)').matches;
+const desktop = document.getElementById('desktop');
+
+/* ---------------- Signature draw-on (every boot) ----------------
+   Each stroke draws at natural pen speed, one after the other. */
+/* Lock screen: password is "sonder". Unlock starts the boot sequence. */
+{
+  const lock  = document.getElementById('lock');
+  const input = document.getElementById('lockInput');
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    if (input.value.trim().toLowerCase() === 'sonder'){
+      lock.classList.add('open');
+      document.body.classList.remove('locked');
+      setTimeout(() => lock.remove(), 750);
+      startBoot();
+    } else {
+      input.classList.remove('wrong'); void input.offsetWidth;
+      input.classList.add('wrong');
+      input.value = '';
+    }
+  });
+}
+
+/* Boot sequence (runs after unlock): signature writes itself →
+   lifts away → project icons pop in → dock rises. */
+function startBoot(){
+  const sig = document.querySelector('.signature');
+  const LEAD = 0.6;   /* breath after unlock */
+  const HOLD = 0.5;   /* admire it a moment */
+  function schedule(duration){
+    /* icon/dock animations were paused while locked, so their animation
+       clocks are still at ~0 — a plain delay from here works */
+    const iconsStart = LEAD + duration + HOLD;
+    document.documentElement.style.setProperty('--boot-delay', iconsStart + 's');
+    setTimeout(() => sig && sig.classList.add('done'), iconsStart * 1000);
+  }
+  if (sig){
+    if (sig.readyState >= 1) schedule(sig.duration);
+    else { sig.addEventListener('loadedmetadata', () => schedule(sig.duration)); }
+    sig.addEventListener('error', () => schedule(0));
+    setTimeout(() => sig.play().catch(()=>{}), LEAD * 1000);
+  } else {
+    schedule(0);
+  }
+}
+
+/* ---------------- Icons ---------------- */
+PROJECTS.forEach((p, i) => {
+  const el = document.createElement('div');
+  el.className = 'icon';
+  el.style.left = p.x + '%';
+  el.style.top  = p.y + '%';
+  el.style.setProperty('--i', i);
+  el.innerHTML = `
+    <div class="thumb" style="position:relative">${String(i+1).padStart(2,'0')}${p.thumb ? `<img src="${p.thumb}" alt="" style="position:absolute;inset:0" onerror="this.remove()">` : ''}</div>
+    <div class="label">${p.title}</div>`;
+  el.addEventListener('animationend', () => el.classList.add('settled'));
+  desktop.appendChild(el);
+  if (isMobile()) el.addEventListener('click', () => openWindow(p, el));
+  else makeIconPhysical(el, p);
+});
+
+/* ============================================================
+   ICON DRAG PHYSICS — drag freely; release with a flick and it
+   glides with momentum + soft bounces off the screen edges.
+   A press with < 6px of travel counts as a click → opens window.
+   ============================================================ */
+function makeIconPhysical(el, project){
+  let x, y, vx = 0, vy = 0;
+  let dragging = false, moved = false;
+  let offX, offY, lastX, lastY, lastT, raf = null;
+  const FRICTION = 0.94, BOUNCE = 0.45, STOP = 0.04;
+
+  function bounds(){
+    return {
+      minX: 4, minY: 10,
+      maxX: innerWidth  - el.offsetWidth  - 4,
+      maxY: innerHeight - el.offsetHeight - 104   // keep clear of the dock
+    };
+  }
+  function apply(){ el.style.left = x + 'px'; el.style.top = y + 'px'; }
+
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    cancelAnimationFrame(raf);
+    const r = el.getBoundingClientRect();
+    x = r.left; y = r.top; apply();
+    offX = e.clientX - r.left; offY = e.clientY - r.top;
+    lastX = e.clientX; lastY = e.clientY; lastT = performance.now();
+    vx = vy = 0; dragging = true; moved = false;
+    el.classList.add('dragging');
+    el.setPointerCapture(e.pointerId);
+  });
+
+  el.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const now = performance.now(), dt = Math.max(now - lastT, 1);
+    const nx = e.clientX - offX, ny = e.clientY - offY;
+    if (Math.hypot(nx - x, ny - y) > 6) moved = true;
+    /* velocity in px/frame (normalized to ~60fps) */
+    vx = (e.clientX - lastX) / dt * 16.7;
+    vy = (e.clientY - lastY) / dt * 16.7;
+    x = nx; y = ny; apply();
+    lastX = e.clientX; lastY = e.clientY; lastT = now;
+  });
+
+  el.addEventListener('pointerup', () => {
+    if (!dragging) return;
+    dragging = false;
+    el.classList.remove('dragging');
+    if (!moved) { openWindow(project, el); return; }
+    glide();
+  });
+
+  function glide(){
+    const b = bounds();
+    function step(){
+      vx *= FRICTION; vy *= FRICTION;
+      x += vx; y += vy;
+      if (x < b.minX){ x = b.minX; vx = -vx * BOUNCE; }
+      if (x > b.maxX){ x = b.maxX; vx = -vx * BOUNCE; }
+      if (y < b.minY){ y = b.minY; vy = -vy * BOUNCE; }
+      if (y > b.maxY){ y = b.maxY; vy = -vy * BOUNCE; }
+      apply();
+      if (Math.hypot(vx, vy) > STOP) raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+  }
+}
+
+/* ---------------- Windows ---------------- */
+let topZ = 100;
+const open = {};
+
+function openWindow(p, anchorEl){
+  if (open[p.id]) { bringFront(open[p.id]); return; }
+
+  /* projects with an `html` field (like poems) show that instead of media;
+     projects with noPreview skip the preview section entirely */
+  const previewHTML = p.noPreview ? ''
+    : `<div class="win-sec">Preview:</div>` + (p.html ? p.html
+    : `<div class="media-stack">${(p.media && p.media.length)
+        ? p.media.map(m => m.type === 'video'
+            ? `<video src="${m.src}" controls playsinline preload="metadata" onerror="this.remove()"></video>`
+            : `<img src="${m.src}" alt="${p.title} frame" loading="lazy" onerror="this.remove()">`).join('')
+        : `<div class="media-note">MP4s + best frames land here. add them to this
+           project's <b>media</b> list in index.html.</div>`}</div>`);
+
+  /* details line: custom text, a link, or the type chain */
+  const detailHTML = p.detailText ? p.detailText
+    : p.link
+    ? `<a href="${p.link.url}" target="_blank" rel="noopener" style="text-decoration:underline">${p.link.label}</a>`
+    : `Type: ${p.type}`;
+
+  const w = spawnWindow(p.id, p.title, anchorEl, `
+    <div class="win-head">
+      <div class="mini">${p.thumb ? `<img src="${p.thumb}" alt="">` : ''}</div>
+      <div><h2>${p.title}</h2><div class="client">${p.client}, ${p.year}</div></div>
+    </div>
+    <p>${p.desc}</p>
+    <div class="win-sec">Details:</div>
+    <div class="detail">${detailHTML}</div>
+    ${previewHTML}`);
+}
+
+function spawnWindow(id, title, anchorEl, bodyHTML){
+  const w = document.createElement('section');
+  w.className = 'app-window';
+  if (!isMobile()){
+    /* open near the clicked icon (like the reference recording),
+       clamped so the window stays on screen */
+    const winW = Math.min(560, innerWidth * .92);
+    let left, top;
+    if (anchorEl){
+      const r = anchorEl.getBoundingClientRect();
+      left = r.right + 18;
+      top  = r.top - 20;
+      if (left + winW > innerWidth - 12) left = r.left - winW - 18; /* flip to the left side */
+      if (left < 12) left = Math.max(12, (innerWidth - winW) / 2);
+      top = Math.min(Math.max(40, top), innerHeight * .45);
+    } else {
+      const n = Object.keys(open).length;
+      left = innerWidth  * (.18 + Math.min(n * .04, .22));
+      top  = innerHeight * (.12 + Math.min(n * .05, .18));
+    }
+    w.style.left = left + 'px';
+    w.style.top  = top + 'px';
+  }
+  w.style.zIndex = ++topZ;
+  w.innerHTML = `
+    <div class="titlebar">
+      <span class="lights"><span class="r" title="Close"></span><span class="y"></span><span class="g"></span></span>
+      ${title}
+    </div>
+    <div class="win-body">${bodyHTML}</div>`;
+  document.body.appendChild(w);
+  open[id] = w;
+  w.addEventListener('pointerdown', () => bringFront(w));
+  w.querySelector('.lights .r').addEventListener('click', () => {
+    w.classList.add('closing');
+    w.querySelectorAll('video').forEach(v => v.pause());
+    setTimeout(() => { w.remove(); delete open[id]; }, 220);
+  });
+  makeWindowDraggable(w, w.querySelector('.titlebar'));
+  return w;
+}
+
+function bringFront(w){ w.style.zIndex = ++topZ; }
+
+function makeWindowDraggable(w, handle){
+  if (isMobile()) return;
+  let sx, sy, ox, oy, dragging = false;
+  handle.addEventListener('pointerdown', e => {
+    if (e.target.closest('.lights')) return;
+    dragging = true; sx = e.clientX; sy = e.clientY;
+    const r = w.getBoundingClientRect(); ox = r.left; oy = r.top;
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    w.style.left = Math.max(-200, ox + e.clientX - sx) + 'px';
+    w.style.top  = Math.max(30,  oy + e.clientY - sy) + 'px';
+  });
+  handle.addEventListener('pointerup', () => dragging = false);
+}
+
+/* ---------------- Dock extras ---------------- */
+/* ---------------- Notes → "Information about" window with live tabs ---------------- */
+const ABOUT_TABS = {
+  about: {
+    label: 'About me',
+    html: `
+      <p>Creative director, designer, photographer, and even stylist sometimes,
+      but I do way more than that...<br>
+      To keep it brief, I believe that each idea is poetry and I bring it to life,
+      while managing everything that makes those ideas come together at the end.</p>
+      <p>I can do...</p>
+      <ul class="check">
+        <li>Anything</li>
+        <li>Creative Direction</li>
+        <li>Filming</li>
+        <li>Scriptwriting</li>
+        <li>Artwork</li>
+        <li>Visual Design</li>
+        <li>Motion Design</li>
+        <li>Clothing Design</li>
+        <li>Social media content</li>
+      </ul>`
+  },
+  cv: {
+    label: 'CV',
+    html: `
+      <h3>Experience</h3>
+      <ul class="check">
+        <li>blink.cash (creative lead)</li>
+        <li>Shayari Studio (founder)</li>
+        <li>Rowhouse Run Club. film & edit (2025)</li>
+        <li>Saucony</li>
+        <li>Startup launch videos</li>
+        <li>Startup branding</li>
+        <li>Crypto campaigns</li>
+        <li>Beta Chi Theta. founding + media (2024)</li>
+      </ul>
+      <h3>Goals</h3>
+      <ul class="check">
+        <li>found a studio of my own</li>
+        <li>make clothes strangers wear</li>
+        <li class="todo">work with the artists i grew up on</li>
+        <li class="todo">something of mine in times square</li>
+        <li class="todo">creative direct a full album rollout</li>
+      </ul>`
+  },
+  interests: {
+    label: 'Interests',
+    html: `
+      <ul class="check">
+        <li>MOGGING (in every way, shape, or form)</li>
+      </ul>`
+  }
+};
+
+document.getElementById('notesBtn').addEventListener('click', () => {
+  if (open['about']) { bringFront(open['about']); return; }
+  const counts = { about: 9, cv: 13, interests: '∞' }; /* sidebar counters */
+  const w = spawnWindow('about',
+    'Information about: Taimoor Sohail, storiesbytaimoor@gmail.com', null, `
+    <div class="notes-side">
+      ${Object.entries(ABOUT_TABS).map(([k, t], i) => `
+        <button data-tab="${k}" class="${i === 0 ? 'active' : ''}">
+          ${t.label} <span class="n">${counts[k]}</span>
+        </button>`).join('')}
+    </div>
+    <div class="notes-content">${ABOUT_TABS.about.html}</div>`);
+  const body = w.querySelector('.win-body');
+  body.classList.add('notes-body');
+  const content = w.querySelector('.notes-content');
+  w.querySelectorAll('.notes-side button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      w.querySelectorAll('.notes-side button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      content.innerHTML = ABOUT_TABS[btn.dataset.tab].html;
+      content.scrollTop = 0;
+    });
+  });
+});
+/* ---------------- Photos → Gallery ("Lowkey documentation") ----------------
+   Fill GALLERY with your photos: {type:"img", src:"media/gallery/01.jpg"}
+   (or type:"video"). Order = display order. */
+const GALLERY = [];
+
+document.getElementById('photosBtn').addEventListener('click', () => {
+  if (open['gallery']) { bringFront(open['gallery']); return; }
+  const items = GALLERY.map(m => m.type === 'video'
+    ? `<video src="${m.src}" controls playsinline preload="metadata"></video>`
+    : `<img src="${m.src}" alt="" loading="lazy">`).join('');
+  spawnWindow('gallery', 'Information about: Gallery', null, `
+    <div class="win-head">
+      <div class="mini" style="background:#fff;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 48 48" style="width:38px;height:38px"><g transform="translate(24 24)">
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#f5b800" opacity=".85"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#f28500" opacity=".85" transform="rotate(45)"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#e5443c" opacity=".85" transform="rotate(90)"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#d64e9a" opacity=".85" transform="rotate(135)"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#8c62d2" opacity=".85" transform="rotate(180)"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#3f8fe8" opacity=".85" transform="rotate(225)"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#42b4e6" opacity=".85" transform="rotate(270)"/>
+          <ellipse rx="5" ry="11" cy="-7.5" fill="#5bb974" opacity=".85" transform="rotate(315)"/>
+        </g></svg>
+      </div>
+      <div><h2>Gallery</h2><div class="client">Lowkey documentation</div></div>
+    </div>
+    <div class="redacted">
+    <div class="stamp">coming soon.
+      <span class="sub">july 30th.</span>
+    </div>
+    <div class="blurred">
+    <div class="win-sec">Preview:</div>
+    <div class="media-stack" style="min-height:280px">${items || '<div class="media-note">Drop photos into <b>media/gallery/</b> and list them in the GALLERY array in index.html.</div>'}</div>
+    </div>
+    </div>`);
+});
+
+/* ---------------- Trash → Bin of ideas ("Unrelated yet cool selection") ----------------
+   Fill BIN with experiments: {type:"video", src:"media/bin/01.mp4"} etc. */
+const BIN = [];
+
+document.getElementById('trashBtn').addEventListener('click', e => {
+  const b = e.currentTarget;
+  b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+  if (open['bin']) { bringFront(open['bin']); return; }
+  const items = BIN.map(m => m.type === 'video'
+    ? `<video src="${m.src}" controls playsinline preload="metadata" muted loop></video>`
+    : `<img src="${m.src}" alt="" loading="lazy">`).join('');
+  spawnWindow('bin', 'Information about: Bin of ideas', null, `
+    <div class="win-head">
+      <div class="mini" style="background:transparent">
+        <img src="media/logos/trash.png" alt="" style="object-fit:contain" onerror="this.remove()">
+      </div>
+      <div><h2>Bin of ideas</h2><div class="client">Unrelated yet cool selection</div></div>
+    </div>
+    <div class="redacted">
+    <div class="stamp">create more summer
+      <span class="sub">coming soon. july 30th.</span>
+    </div>
+    <div class="blurred">
+    <div class="paper">
+      <h3>the beer mile. unsolicited.</h3>
+      <p>beer and running. philadelphia. july 30th. no brand. no sponsor.
+      no permission asked. a bunch of friends who think the city needs
+      something it did not see coming.</p>
+
+      <h3>the hunt</h3>
+      <p>fifteen stencils across philly. beer + running. july 30th. nothing
+      else. no faces in any of it. under each stencil, a password. the
+      password unlocks a signup on a site that explains nothing. if you
+      found it, you were meant to run it. cicada. but for runners.</p>
+
+      <h3>the launch ads</h3>
+      <p>we go out at night and film ourselves making the drops. hoods up.
+      no faces. the making is the ad. clips go out with no caption. no
+      account tags anyone. the city does the talking.</p>
+
+      <h3>the race</h3>
+      <p>the srt. a beer every quarter. finish it or don't. nobody is
+      timing you but everybody is watching. leave no trace. we carry out
+      every can. no one drives home after. septa exists.</p>
+
+      <h3>the afterparty</h3>
+      <p>the address does not exist until you finish. it texts out at the
+      finish line. what happens there stays off the site.</p>
+
+      <h3>the rules</h3>
+      <p>no affiliation. no merch table. no explaining. hype is built, not
+      bought. cap it at one hundred. first passwords, first in. when it's
+      full, it's full. don't ask us. ask the walls.</p>
+
+      <h3>ops</h3>
+      <ul class="check">
+        <li class="todo">cut the stencils. chalk spray, washes off, keeps it a mystery not a charge</li>
+        <li class="todo">build the site. one page. black. a password field. nothing else</li>
+        <li class="todo">seed fifteen passwords across the city</li>
+        <li class="todo">night missions. shoot the making</li>
+        <li class="todo">drop the clips. say nothing</li>
+        <li class="todo">july 30th. run</li>
+      </ul>
+    </div>
+    <div class="win-sec">Preview:</div>
+    <div class="media-grid">${items || '<div class="media-note" style="grid-column:1/-1">night mission clips land here when we shoot them.</div>'}</div>
+    </div>
+    </div>`);
+});
+/* dark macOS-style error dialogs. every creative tool has its own tragedy. */
+function showAlert(title, msg, btnLabel){
+  if (document.querySelector('.alert')) return;
+  const a = document.createElement('div');
+  a.className = 'alert';
+  a.innerHTML = `
+    <div class="abar">${title}</div>
+    <div class="acontent">
+      <svg viewBox="0 0 48 48">
+        <path d="M24 6 L45 41 H3 Z" fill="#ffcc00" stroke="#e6a700" stroke-width="1.5" stroke-linejoin="round"/>
+        <rect x="22" y="18" width="4" height="12" rx="2" fill="#1d1d1f"/>
+        <circle cx="24" cy="35" r="2.4" fill="#1d1d1f"/>
+      </svg>
+      <div class="amsg">${msg}</div>
+    </div>
+    <div class="aactions"><button>${btnLabel}</button></div>`;
+  document.body.appendChild(a);
+  /* center it, then hand it px coordinates so it drags like any window */
+  const r = a.getBoundingClientRect();
+  a.style.left = Math.round((innerWidth  - r.width)  / 2) + 'px';
+  a.style.top  = Math.round(innerHeight * .36 - r.height / 2) + 'px';
+  a.style.zIndex = topZ = Math.max(topZ + 1, 601);
+  a.addEventListener('pointerdown', () => a.style.zIndex = ++topZ);
+  makeWindowDraggable(a, a.querySelector('.abar'));
+  a.querySelector('button').addEventListener('click', () => {
+    a.classList.add('closing');
+    setTimeout(() => a.remove(), 180);
+  });
+}
+
+document.getElementById('warnBtn').addEventListener('click', () =>
+  showAlert('Adobe Error',
+    `Graphic designer just lost his mind. Shame he didn't have a hard drive copy.`,
+    'Give up and go cry'));
+
+const TOOL_ERRORS = {
+  'After Effects': ['After Effects Error',
+    `I know it's 4am. The keyframes needed me.`,
+    'Render and sleep'],
+  'Premiere Pro': ['Premiere Pro Error',
+    `No. I won't be changing the music.`,
+    'The music stays'],
+  'Photoshop': ['Photoshop Error',
+    `Yes, it's 400 layers. Every single one matters.`,
+    'Flatten nothing'],
+  'Illustrator': ['Illustrator Error',
+    `That's not a squiggle. That's the brand.`,
+    'Approve it'],
+};
+Object.entries(TOOL_ERRORS).forEach(([tip, [title, msg, btn]]) => {
+  const el = document.querySelector(`.dock-item[data-tip="${tip}"]`);
+  if (el) el.addEventListener('click', () => showAlert(title, msg, btn));
+});
+
+/* Auto-upgrade dock icons to pixel-perfect PNGs when present in media/logos/ */
+[['After Effects','ae'],['Premiere Pro','pr'],['Photoshop','ps'],['Illustrator','ai'],['Work in progress','warning'],
+ ['About me','notes'],['Frames','photos'],['Instagram','instagram'],['Email me','mail'],['Trash','trash']]
+.forEach(([tip, file]) => {
+  const item = document.querySelector(`.dock-item[data-tip="${tip}"]`);
+  if (!item) return;
+  /* svg preferred, png fallback: first one that loads wins */
+  const img = new Image();
+  img.className = 'px';
+  img.onload = () => item.appendChild(img);
+  img.onerror = () => {
+    const png = new Image();
+    png.className = 'px';
+    png.onload = () => item.appendChild(png);
+    png.src = `media/logos/${file}.png`;
+  };
+  img.src = `media/logos/${file}.svg`;
+});
+</script>
+</body>
+</html>
